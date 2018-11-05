@@ -22,15 +22,21 @@ final class ManifestAssetNameResolver implements AssetNameResolverInterface
 	private $loader;
 
 	/**
-	 * @var string[]|NULL
+	 * @var AssetNameResolverInterface|NULL
+	 */
+	private $fallbackResolver;
+
+	/**
+	 * @var string[]|NULL|FALSE
 	 */
 	private $manifestCache;
 
 
-	public function __construct(string $manifestName, ManifestLoader $loader)
+	public function __construct(string $manifestName, ManifestLoader $loader, AssetNameResolverInterface $fallbackResolver = null)
 	{
 		$this->manifestName = $manifestName;
 		$this->loader = $loader;
+		$this->fallbackResolver = $fallbackResolver;
 	}
 
 
@@ -41,11 +47,19 @@ final class ManifestAssetNameResolver implements AssetNameResolverInterface
 				$this->manifestCache = $this->loader->loadManifest($this->manifestName);
 
 			} catch (CannotLoadManifestException $e) {
-				throw new CannotResolveAssetNameException('Failed to load manifest file.', 0, $e);
+				if ($this->fallbackResolver === NULL) {
+					throw new CannotResolveAssetNameException('Failed to load manifest file.', 0, $e);
+				}
+
+				$this->manifestCache = FALSE;
 			}
 		}
 
-		if ( ! isset($this->manifestCache[$asset])) {
+		if ($this->manifestCache === FALSE) {
+			return $this->fallbackResolver->resolveAssetName($asset);
+		}
+
+		if ( ! isset($this->manifestCache[$asset]) ) {
 			throw new CannotResolveAssetNameException(sprintf(
 				"Asset '%s' was not found in the manifest file '%s'",
 				$asset, $this->loader->getManifestPath($this->manifestName)

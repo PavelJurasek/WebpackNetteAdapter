@@ -89,6 +89,20 @@ class WebpackExtensionTest extends TestCase
 	}
 
 
+	public function testManifestResolverFallbackService()
+	{
+		$container = $this->createContainer('manifest-fallback-service');
+		Assert::type(ManifestAssetNameResolver::class, $container->getByType(AssetNameResolverInterface::class));
+	}
+
+
+	public function testManifestResolverFallbackClass()
+	{
+		$container = $this->createContainer('manifest-fallback-class');
+		Assert::type(ManifestAssetNameResolver::class, $container->getByType(AssetNameResolverInterface::class));
+	}
+
+
 	public function testOptimizedManifest()
 	{
 		$container = $this->createContainer('optimizedManifest');

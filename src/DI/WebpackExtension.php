@@ -38,6 +38,7 @@ class WebpackExtension extends CompilerExtension
 		'manifest' => [
 			'name' => NULL,
 			'optimize' => NULL,
+			'fallback' => NULL,
 		]
 	];
 
@@ -140,9 +141,16 @@ class WebpackExtension extends CompilerExtension
 					->setClass(ManifestLoader::class)
 					->setAutowired(FALSE);
 
+				$fallback = $config['manifest']['fallback'];
+
+				if (is_string($fallback) && strpos($fallback, '@') !== 0) {
+					$fallback = new Statement($fallback);
+				}
+
 				$assetResolver->setFactory(AssetNameResolver\ManifestAssetNameResolver::class, [
 					$config['manifest']['name'],
-					$loader
+					$loader,
+					$fallback,
 				]);
 
 			} else {
